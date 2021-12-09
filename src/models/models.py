@@ -1,4 +1,3 @@
-import torch.nn as nn
 from src.models.logreg import LogisticRegression
 from src.models.resnet import resnet18, resnet50
 from src.models.resnet_small import resnet18_small, resnet50_small
@@ -31,3 +30,7 @@ def get_hash_encoder(model_name, low_dim=128):
     encoder = DebertaV3ForSSL(
         ow_dim=low_dim, model=HASH_ENCODER[model_name], hidden_dropout_prob=0)
     return encoder
+
+
+def get_linear_evaluator(low_dim, num_class):
+    return LogisticRegression(low_dim, num_class)
