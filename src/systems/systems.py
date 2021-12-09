@@ -63,7 +63,11 @@ class PretrainClipSystem(pl.LightningModule):
         return [optimizer], [schedule]
 
     def get_loss(self, batch, train=True):
-        indices, images, hash_input_ids, hash_attention_mask, _, = batch
+        indices = batch['indices']
+        images = batch['images']
+        hash_input_ids = batch['input_ids']
+        hash_attention_mask = batch['attention_mask']
+
         _, image_projs = self.image_encoder(images)
         _, hash_projs = self.hash_encoder(
             input_ids=hash_input_ids, attention_mask=hash_attention_mask)
@@ -93,7 +97,11 @@ class PretrainClipSystem(pl.LightningModule):
         training dataset using the memory bank. Assume its label as
         the predicted label.
         """
-        _, images, hash_input_ids, hash_attention_mask, label = batch
+        images = batch['images']
+        hash_input_ids = batch['input_ids']
+        hash_attention_mask = batch['attention_mask']
+        labels = batch['labels']
+
         _, image_projs = self.image_encoder(images)
         _, hash_projs = self.hash_encoder(
             input_ids=hash_input_ids, attention_mask=hash_attention_mask)
@@ -103,14 +111,14 @@ class PretrainClipSystem(pl.LightningModule):
         image_nei_idxs = image_nei_idxs.squeeze(1).cpu().numpy()
         image_nei_labels = self.train_ordered_labels[image_nei_idxs]
         image_nei_labels = torch.from_numpy(image_nei_labels).long()
-        image_num_correct = torch.sum(image_nei_labels.cpu() == label.cpu()).item()
+        image_num_correct = torch.sum(image_nei_labels.cpu() == labels.cpu()).item()
 
         hash_all_dps = self.hash_memory_bank.get_all_dot_products(hash_projs)
         _, hash_nei_idxs = torch.topk(hash_all_dps, k=1, sorted=False, dim=1)
         hash_nei_idxs = hash_nei_idxs.squeeze(1).cpu().numpy()
         hash_nei_labels = self.train_ordered_labels[hash_nei_idxs]
         hash_nei_labels = torch.from_numpy(hash_nei_labels).long()
-        hash_num_correct = torch.sum(hash_nei_labels.cpu() == label.cpu()).item()
+        hash_num_correct = torch.sum(hash_nei_labels.cpu() == labels.cpu()).item()
 
         total_size = images.size(0)
 
@@ -251,15 +259,17 @@ class ImageTransferSystem(BaseTransferSystem):
         del self.hash_encoder
 
     def get_loss(self, batch, train=True):
-        _, images, label = batch
+        images = batch['images']
+        labels = batch['labels']
+
         _, image_projs = self.image_encoder(images)
         logits = self.model(image_projs)
-        loss = F.cross_entropy(logits, label)
+        loss = F.cross_entropy(logits, labels)
 
         with torch.no_grad():
             preds = torch.argmax(F.log_softmax(logits, dim=1), dim=1)
             preds = preds.long().cpu()
-            num_correct = torch.sum(preds == label.long().cpu())
+            num_correct = torch.sum(preds == labels.long().cpu())
             num_total = images.size(0)
 
         return loss, num_correct, num_total
@@ -272,16 +282,19 @@ class HashTransferSystem(BaseTransferSystem):
         del self.image_encoder
 
     def get_loss(self, batch, train=True):
-        _, hash_input_ids, hash_attention_mask, label = batch
+        hash_input_ids = batch['input_ids']
+        hash_attention_mask = batch['attention_mask']
+        labels = batch['labels']
+
         _, hash_projs = self.hash_encoder(
             input_ids=hash_input_ids, attention_mask=hash_attention_mask)
         logits = self.model(hash_projs)
-        loss = F.cross_entropy(logits, label)
+        loss = F.cross_entropy(logits, labels)
 
         with torch.no_grad():
             preds = torch.argmax(F.log_softmax(logits, dim=1), dim=1)
             preds = preds.long().cpu()
-            num_correct = torch.sum(preds == label.long().cpu())
+            num_correct = torch.sum(preds == labels.long().cpu())
             num_total = hash_input_ids.size(0)
 
         return loss, num_correct, num_total
