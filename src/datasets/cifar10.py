@@ -35,4 +35,16 @@ class HashedCIFAR10(CIFAR10):
         hash = hashlib.sha256(bytes).hexdigest()
         hash = list(hash)  # list of chars
 
+        return index, hash, label
+
+
+class MultimodalCIFAR10(CIFAR10):
+
+    def __getitem__(self, index):
+        _, image, label = super().__getitem__(index)
+        # hash the transformed image
+        bytes = transforms.toPIL()(image).tobytes()
+        hash = hashlib.sha256(bytes).hexdigest()
+        hash = list(hash)  # list of chars
+
         return index, image, hash, label

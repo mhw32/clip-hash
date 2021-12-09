@@ -1,21 +1,25 @@
 import random
 from PIL import ImageFilter
 from torchvision import transforms
-from src.datasets.cifar10 import CIFAR10, HashedCIFAR10
-from src.datasets.imagenet import ImageNet, HashedImageNet
+from src.datasets.cifar10 import CIFAR10, HashedCIFAR10, MultimodalCIFAR10
+from src.datasets.imagenet import ImageNet, HashedImageNet, MultimodalImageNet
 
 DATASET = {
     'cifar10': CIFAR10,
     'hashed_cifar10': HashedCIFAR10,
+    'multimodal_cifar10': MultimodalCIFAR10,
     'imagenet': ImageNet,
     'hashed_imagenet': HashedImageNet,
+    'multimodal_imagenet': MultimodalImageNet,
 }
 
 NUM_CLASS_DICT = {
     'cifar10': 10, 
     'hashed_cifar10': 10,
+    'multimodal_cifar10': 10,
     'imagenet': 1000,
     'hashed_imagenet': 1000,
+    'multimodal_imagenet': 1000,
 }
 
 

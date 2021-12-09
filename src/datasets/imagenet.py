@@ -30,5 +30,14 @@ class HashedImageNet(ImageNet):
         # hash the transformed image
         bytes = transforms.toPIL()(image).tobytes()
         hash = hashlib.sha256(bytes).hexdigest()
-        return index, image, hash, label
+        return index, hash, label
 
+
+class MultimodalImageNet(ImageNet):
+
+    def __getitem__(self, index):
+        _, image, label = super().__getitem__(index)
+        # hash the transformed image
+        bytes = transforms.toPIL()(image).tobytes()
+        hash = hashlib.sha256(bytes).hexdigest()
+        return index, image, hash, label
