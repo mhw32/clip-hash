@@ -16,7 +16,8 @@ class ImageNet(data.Dataset):
         return np.array(self.dataset.targets)
 
     def __getitem__(self, index):
-        return self.dataset.__getitem__(index)
+        image, label = self.dataset.__getitem__(index)
+        return index, image, label
 
     def __len__(self):
         return len(self.dataset)
@@ -25,9 +26,9 @@ class ImageNet(data.Dataset):
 class HashedImageNet(ImageNet):
 
     def __getitem__(self, index):
-        image, label = super().__getitem__(index)
+        _, image, label = super().__getitem__(index)
         # hash the transformed image
         bytes = transforms.toPIL()(image).tobytes()
         hash = hashlib.sha256(bytes).hexdigest()
-        return image, hash, label
+        return index, image, hash, label
 

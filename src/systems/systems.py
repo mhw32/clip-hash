@@ -32,7 +32,11 @@ class PretrainClipSystem(pl.LightningModule):
         self.temperature = config.loss.temperature
 
         # only used for evaluation
-        self.memory_bank = memory.MemoryBank(
+        self.image_memory_bank = memory.MemoryBank(
+            len(self.train_dataset), 
+            self.config.model.low_dim,
+        )
+        self.hash_memory_bank = memory.MemoryBank(
             len(self.train_dataset), 
             self.config.model.low_dim,
         )
@@ -57,7 +61,7 @@ class PretrainClipSystem(pl.LightningModule):
         return [optimizer], [schedule]
 
     def get_loss(self, batch, train=True):
-        _, images, hash_input_ids, hash_attention_mask, _, = batch
+        indices, images, hash_input_ids, hash_attention_mask, _, = batch
         _, image_projs = self.image_encoder(images)
         _, hash_projs = self.hash_encoder(
             input_ids=hash_input_ids, attention_mask=hash_attention_mask)
@@ -70,8 +74,15 @@ class PretrainClipSystem(pl.LightningModule):
         image_loss = F.cross_entropy(logits, labels, reduction='none')
         hash_loss = F.cross_entropy(logits.t(), labels, reduction='none')
         loss = (image_loss + hash_loss) / 2.0
+
+        if train:  # save embeddings into memory bank
+            with torch.no_grad():
+                self.image_memory_bank.update(indices, image_projs)
+                self.hash_memory_bank.update(indices, hash_projs)
+
         return loss.mean()
 
+    @torch.no_grad()
     def get_nearest_neighbor_label(self, batch):
         """
         NOTE: ONLY TO BE USED FOR VALIDATION.
@@ -80,31 +91,42 @@ class PretrainClipSystem(pl.LightningModule):
         training dataset using the memory bank. Assume its label as
         the predicted label.
         """
-        img, label = batch[1], batch[-1]
-        outputs = self.forward(img)
+        _, images, hash_input_ids, hash_attention_mask, label, = batch
+        _, image_projs = self.image_encoder(images)
+        _, hash_projs = self.hash_encoder(
+            input_ids=hash_input_ids, attention_mask=hash_attention_mask)
 
-        all_dps = self.memory_bank.get_all_dot_products(outputs)
-        _, neighbor_idxs = torch.topk(all_dps, k=1, sorted=False, dim=1)
-        neighbor_idxs = neighbor_idxs.squeeze(1)
-        neighbor_idxs = neighbor_idxs.cpu().numpy()
+        image_all_dps = self.image_memory_bank.get_all_dot_products(image_projs)
+        _, image_nei_idxs = torch.topk(image_all_dps, k=1, sorted=False, dim=1)
+        image_nei_idxs = image_nei_idxs.squeeze(1).cpu().numpy()
+        image_nei_labels = self.train_ordered_labels[image_nei_idxs]
+        image_nei_labels = torch.from_numpy(image_nei_labels).long()
+        image_num_correct = torch.sum(image_nei_labels.cpu() == label.cpu()).item()
 
-        neighbor_labels = self.train_ordered_labels[neighbor_idxs]
-        neighbor_labels = torch.from_numpy(neighbor_labels).long()
+        hash_all_dps = self.hash_memory_bank.get_all_dot_products(hash_projs)
+        _, hash_nei_idxs = torch.topk(hash_all_dps, k=1, sorted=False, dim=1)
+        hash_nei_idxs = hash_nei_idxs.squeeze(1).cpu().numpy()
+        hash_nei_labels = self.train_ordered_labels[hash_nei_idxs]
+        hash_nei_labels = torch.from_numpy(hash_nei_labels).long()
+        hash_num_correct = torch.sum(hash_nei_labels.cpu() == label.cpu()).item()
 
-        num_correct = torch.sum(neighbor_labels.cpu() == label.cpu()).item()
-        return num_correct, img.size(0)
+        total_size = images.size(0)
 
-    def training_step(self, batch, batch_idx):
+        return image_num_correct, hash_num_correct, total_size
+
+    def training_step(self, batch, _):
         loss = self.get_loss(batch, train=True)
         self.log_dict({'loss': loss} )
         return loss
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step(self, batch, _):
         loss = self.get_loss(batch, train=False)
-        num_correct, batch_size = self.get_nearest_neighbor_label(batch)
+        image_num_correct, hash_num_correct, batch_size = \
+            self.get_nearest_neighbor_label(batch)
         output = OrderedDict({
             'val_loss': loss,
-            'val_num_correct': num_correct,
+            'val_image_num_correct': image_num_correct,
+            'val_hash_num_correct': hash_num_correct,
             'val_num_total': batch_size,
         })
         return output
@@ -113,10 +135,13 @@ class PretrainClipSystem(pl.LightningModule):
         metrics = {}
         metrics['val_loss'] = torch.tensor(
             [elem['val_loss'] for elem in outputs]).float().mean()
-        num_correct = sum([out['val_num_correct'] for out in outputs])
+        image_num_correct = sum([out['val_image_num_correct'] for out in outputs])
+        hash_num_correct = sum([out['val_hash_num_correct'] for out in outputs])
         num_total = sum([out['val_num_total'] for out in outputs])
-        val_acc = num_correct / float(num_total)
-        metrics['val_acc'] = val_acc
+        val_image_acc = image_num_correct / float(num_total)
+        val_hash_acc = hash_num_correct / float(num_total)
+        metrics['val_image_acc'] = val_image_acc
+        metrics['val_hash_acc'] = val_hash_acc
         self.log_dict(metrics)
 
     def train_dataloader(self):

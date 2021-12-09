@@ -19,7 +19,8 @@ class CIFAR10(data.Dataset):
         return np.array(self.dataset.targets)
 
     def __getitem__(self, index):
-        return self.dataset.__getitem__(index)
+        image, label = self.dataset.__getitem__(index)
+        return index, image, label
 
     def __len__(self):
         return len(self.dataset)
@@ -28,10 +29,10 @@ class CIFAR10(data.Dataset):
 class HashedCIFAR10(CIFAR10):
 
     def __getitem__(self, index):
-        image, label = super().__getitem__(index)
+        _, image, label = super().__getitem__(index)
         # hash the transformed image
         bytes = transforms.toPIL()(image).tobytes()
         hash = hashlib.sha256(bytes).hexdigest()
         hash = list(hash)  # list of chars
 
-        return image, hash, label
+        return index, image, hash, label
