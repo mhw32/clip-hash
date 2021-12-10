@@ -8,7 +8,7 @@
     "data_loader_workers": 8,
     "dataset": {
         "root": "/data2/wumike/cifar10",
-        "dataset": "cifar10"
+        "dataset": "multimodal_cifar10"
     },
     "model": {
         "low_dim": 256,
@@ -20,8 +20,9 @@
     },
     "optimizer": {
         "batch_size": 64,
-        "lr": 5e-4
+        "lr": 5e-4,
+		"warmup_steps": 200
     },
-    "num_epochs": 32,
+    "num_epochs": 200,
     "continue_from_checkpoint": null
 }

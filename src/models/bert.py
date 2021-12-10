@@ -11,8 +11,9 @@ class DebertaV3ForSSL(nn.Module):
         super().__init__()
         self.deberta = deberta.DeBERTa(pre_trained=model)
         self.deberta.apply_state()  #initialize
-        self.pooler = ContextPooler(self.deberta.hidden_size)
-        self.projection = ProjectionHead(self.deberta.hidden_size, low_dim)
+        hidden_size = self.deberta.config.hidden_size
+        self.pooler = ContextPooler(hidden_size)
+        self.projection = ProjectionHead(hidden_size, low_dim)
 
     def forward(
         self,

@@ -90,7 +90,7 @@ def concat_all_gather(tensor):
 def create_dataloader(dataset, config, shuffle=True):
     loader = DataLoader(
         dataset, 
-        batch_size=config.optim_params.batch_size,
+        batch_size=config.optimizer.batch_size,
         shuffle=shuffle, 
         pin_memory=True,
         drop_last=shuffle,

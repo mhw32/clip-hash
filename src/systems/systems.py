@@ -1,4 +1,5 @@
 import os
+from itertools import chain
 from dotmap import DotMap
 
 import torch
@@ -48,7 +49,10 @@ class PretrainClipSystem(pl.LightningModule):
     def configure_optimizers(self):
         # https://github.com/Zasder3/train-CLIP
         optimizer = torch.optim.AdamW(
-            self.model.parameters(),
+            chain(
+                self.image_encoder.parameters(),
+                self.hash_encoder.parameters(),
+            ),
             lr=self.config.optimizer.lr,
             betas=(0.9, 0.999),
             eps=1e-8,
@@ -60,7 +64,7 @@ class PretrainClipSystem(pl.LightningModule):
             cycle_mult=1.0,
             max_lr=self.config.optimizer.lr,
             min_lr=0,
-            warmup_steps=2000
+            warmup_steps=self.config.optimizer.warmup_steps,
         )
         return [optimizer], [schedule]
 
@@ -125,6 +129,23 @@ class PretrainClipSystem(pl.LightningModule):
         total_size = images.size(0)
 
         return image_num_correct, hash_num_correct, total_size
+
+    @property
+    def num_training_steps(self) -> int:
+        """Total training steps inferred from datamodule and devices."""
+        dataset = self.train_dataloader()
+        if self.trainer.max_steps:
+            return self.trainer.max_steps
+
+        dataset_size = len(dataset)
+
+        num_devices = max(1, self.trainer.num_gpus, self.trainer.num_processes)
+        if self.trainer.tpu_cores:
+            num_devices = max(num_devices, self.trainer.tpu_cores)
+
+        effective_batch_size = \
+            dataset.batch_size * self.trainer.accumulate_grad_batches * num_devices
+        return (dataset_size // effective_batch_size) * self.trainer.max_epochs
 
     def training_step(self, batch, _):
         loss = self.get_loss(batch, train=True)
