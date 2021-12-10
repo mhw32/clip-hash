@@ -7,7 +7,7 @@
     "seed": 0,
     "data_loader_workers": 16,
     "dataset": {
-        "root": "/data2/wumike/datasets",
+        "root": "/data5/chengxuz/Dataset/imagenet_raw",
         "dataset": "imagenet"
     },
     "model": {

@@ -28,7 +28,7 @@ def get_image_encoder(model_name, low_dim=128):
 
 def get_hash_encoder(model_name, low_dim=128):
     encoder = DebertaV3ForSSL(
-        ow_dim=low_dim, model=HASH_ENCODER[model_name], hidden_dropout_prob=0)
+        low_dim=low_dim, model=HASH_ENCODER[model_name], hidden_dropout_prob=0)
     return encoder
 
 
