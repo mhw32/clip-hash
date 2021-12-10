@@ -23,21 +23,6 @@ NUM_CLASS_DICT = {
 }
 
 
-def get_datasets(root, dataset_name):
-    """
-    Master function for loading datasets and toggle between
-    different image transformation.
-    """
-    train_transforms, test_transforms = load_imagenet_transforms()
-    train_dataset = DATASET[dataset_name](
-        root, train=True, image_transforms=train_transforms)
-    val_dataset = DATASET[dataset_name](
-        root, train=False, image_transforms=test_transforms)
-    train_dataset.num_class = NUM_CLASS_DICT[dataset_name]
-    val_dataset.num_class = NUM_CLASS_DICT[dataset_name]
-    return train_dataset, val_dataset
-
-
 def load_imagenet_transforms():
     train_transforms = transforms.Compose([
         transforms.RandomResizedCrop(224, scale=(0.2, 1.0)),
@@ -57,13 +42,58 @@ def load_imagenet_transforms():
         transforms.Resize(256),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
-        transforms.RandomApply([
-            GaussianBlur(sigma=(0.1, 2.0))
-        ], p=0.5),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], 
                              std=[0.229, 0.224, 0.225]),
     ])
     return train_transforms, test_transforms
+
+
+def load_cifar10_transforms():
+    train_transforms = transforms.Compose([
+        transforms.RandomResizedCrop(32, scale=(0.2, 1.0)),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomApply([
+            transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)
+        ], p=0.8),
+        transforms.RandomGrayscale(p=0.2),
+        transforms.RandomApply([
+            GaussianBlur(sigma=(0.1, 2.0))
+        ], p=0.5),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                             std=[0.229, 0.224, 0.225]),
+    ])
+    test_transforms = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], 
+                             std=[0.229, 0.224, 0.225]),
+    ])
+    return train_transforms, test_transforms
+
+
+TRANSFORM = {
+    'cifar10': load_cifar10_transforms,
+    'hashed_cifar10': load_cifar10_transforms,
+    'multimodal_cifar10': load_cifar10_transforms,
+    'imagenet': load_imagenet_transforms,
+    'hashed_imagenet': load_imagenet_transforms,
+    'multimodal_imagenet': load_imagenet_transforms,
+}
+
+
+def get_datasets(root, dataset_name):
+    """
+    Master function for loading datasets and toggle between
+    different image transformation.
+    """
+    train_transforms, test_transforms = TRANSFORM[dataset_name]()
+    train_dataset = DATASET[dataset_name](
+        root, train=True, image_transforms=train_transforms)
+    val_dataset = DATASET[dataset_name](
+        root, train=False, image_transforms=test_transforms)
+    train_dataset.num_class = NUM_CLASS_DICT[dataset_name]
+    val_dataset.num_class = NUM_CLASS_DICT[dataset_name]
+    return train_dataset, val_dataset
 
 
 def undo_imagenet_transforms():

@@ -23,12 +23,12 @@ class PretrainClipSystem(pl.LightningModule):
 
         self.image_encoder = models.get_image_encoder(
             config.model.image_encoder,
-            self.config.model.low_dim,
+            config.model.low_dim,
         )
 
         self.hash_encoder = models.get_hash_encoder(
             config.model.hash_encoder,
-            self.config.model.low_dim,
+            config.model.low_dim,
         )
 
         self.temperature = config.loss.temperature
@@ -36,11 +36,11 @@ class PretrainClipSystem(pl.LightningModule):
         # only used for evaluation
         self.image_memory_bank = memory.MemoryBank(
             len(self.train_dataset), 
-            self.config.model.low_dim,
+            config.model.low_dim,
         )
         self.hash_memory_bank = memory.MemoryBank(
             len(self.train_dataset), 
-            self.config.model.low_dim,
+            config.model.low_dim,
         )
 
     def configure_optimizers(self):
@@ -203,7 +203,7 @@ class BaseTransferSystem(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(
             self.model.parameters(),
-            lr=self.config.optimizer.learning_rate,
+            lr=self.config.optimizer.lr,
             momentum=self.config.optimizer.momentum,
             weight_decay=self.config.optimizer.weight_decay,
         )

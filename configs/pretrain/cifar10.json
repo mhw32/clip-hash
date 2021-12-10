@@ -1,0 +1,27 @@
+{
+    "exp_base": "/mnt/fs5/wumike/clip_hash/trained_models",
+    "exp_name": "pretrain_cifar10_clip_r18_xsmall",
+    "system": "PretrainClipSystem",
+    "cuda": true,
+    "gpu_device": 0,
+    "seed": 0,
+    "data_loader_workers": 8,
+    "dataset": {
+        "root": "/data2/wumike/datasets",
+        "dataset": "cifar10"
+    },
+    "model": {
+        "low_dim": 256,
+        "image_encoder": "resnet-18", 
+        "hash_encoder": "deberta-v3-xsmall"
+    },
+    "loss": {
+        "temperature": 0.1
+    },
+    "optimizer": {
+        "batch_size": 64,
+        "lr": 5e-4
+    },
+    "num_epochs": 32,
+    "continue_from_checkpoint": null
+}
