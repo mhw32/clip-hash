@@ -7,8 +7,9 @@ import pytorch_lightning as pl
 torch.backends.cudnn.benchmark = True
 
 SYSTEM = {
-    'PretrainSystem': systems.PretrainSystem,
-    'TransferSystem': systems.TransferSystem,
+    'PretrainClipSystem': systems.PretrainClipSystem,
+    'ImageTransferSystem': systems.ImageTransferSystem,
+    'HashTransferSystem': systems.HashTransferSystem,
 }
 
 

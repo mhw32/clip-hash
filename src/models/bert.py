@@ -1,6 +1,7 @@
-import torch as nn
+import torch.nn as nn
 from DeBERTa import deberta
-from transformers import ACT2FN, StableDropout
+from transformers.activations import ACT2FN
+from transformers.models.deberta.modeling_deberta import StableDropout
 from src.models.projection import ProjectionHead
 
 
