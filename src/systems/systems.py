@@ -24,11 +24,13 @@ class PretrainClipSystem(pl.LightningModule):
         self.image_encoder = models.get_image_encoder(
             config.model.image_encoder,
             config.model.low_dim,
+            trainable=True,
         )
 
         self.hash_encoder = models.get_hash_encoder(
             config.model.hash_encoder,
             config.model.low_dim,
+            trainable=True,
         )
 
         self.temperature = config.loss.temperature
