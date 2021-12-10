@@ -7,7 +7,7 @@ from src.models.projection import ProjectionHead
 
 class DebertaV3ForSSL(nn.Module):
 
-    def __init__(self, low_dim=128, model='base', hidden_dropout_prob=0.1):
+    def __init__(self, low_dim=128, model='base'):
         super().__init__()
         self.deberta = deberta.DeBERTa(pre_trained=model)
         self.deberta.apply_state()  #initialize

@@ -1,3 +1,4 @@
+import os
 from src.models.logreg import LogisticRegression
 from src.models.resnet import resnet18, resnet50
 from src.models.resnet_small import resnet18_small, resnet50_small
@@ -12,12 +13,13 @@ IMAGE_ENCODER = {
     'logreg': LogisticRegression,
 }
 
+DEBERTA_ROOT = '/data2/wumike/clip_hash'
 
 HASH_ENCODER = {
-    'deberta-v3-small': 'small',
-    'deberta-v3-xsmall': 'xsmall',
-    'deberta-v3-base': 'base',
-    'deberta-v3-large': 'large',
+    'deberta-v3-small': os.path.join(DEBERTA_ROOT, 'deberta-v3-small'),
+    'deberta-v3-xsmall': os.path.join(DEBERTA_ROOT, 'deberta-v3-xsmall'),
+    'deberta-v3-base': os.path.join(DEBERTA_ROOT, 'deberta-v3-base'),
+    'deberta-v3-large': os.path.join(DEBERTA_ROOT, 'deberta-v3-large'),
 }
 
 
@@ -27,8 +29,7 @@ def get_image_encoder(model_name, low_dim=128):
 
 
 def get_hash_encoder(model_name, low_dim=128):
-    encoder = DebertaV3ForSSL(
-        low_dim=low_dim, model=HASH_ENCODER[model_name], hidden_dropout_prob=0)
+    encoder = DebertaV3ForSSL(low_dim=low_dim, model=HASH_ENCODER[model_name])
     return encoder
 
 
