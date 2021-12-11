@@ -119,14 +119,14 @@ class PretrainClipSystem(pl.LightningModule):
         image_all_dps = self.image_memory_bank.get_all_dot_products(image_projs)
         _, image_nei_idxs = torch.topk(image_all_dps, k=1, sorted=False, dim=1)
         image_nei_idxs = image_nei_idxs.squeeze(1).cpu().numpy()
-        image_nei_labels = self.train_ordered_labels[image_nei_idxs]
+        image_nei_labels = self.train_labels[image_nei_idxs]
         image_nei_labels = torch.from_numpy(image_nei_labels).long()
         image_num_correct = torch.sum(image_nei_labels.cpu() == labels.cpu()).item()
 
         hash_all_dps = self.hash_memory_bank.get_all_dot_products(hash_projs)
         _, hash_nei_idxs = torch.topk(hash_all_dps, k=1, sorted=False, dim=1)
         hash_nei_idxs = hash_nei_idxs.squeeze(1).cpu().numpy()
-        hash_nei_labels = self.train_ordered_labels[hash_nei_idxs]
+        hash_nei_labels = self.train_labels[hash_nei_idxs]
         hash_nei_labels = torch.from_numpy(hash_nei_labels).long()
         hash_num_correct = torch.sum(hash_nei_labels.cpu() == labels.cpu()).item()
 

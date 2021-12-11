@@ -5,7 +5,7 @@
     "cuda": true,
     "gpu_device": 0,
     "seed": 0,
-    "data_loader_workers": 0,
+    "data_loader_workers": 16,
     "dataset": {
         "root": "/data2/wumike/cifar10",
         "dataset": "multimodal_cifar10",
