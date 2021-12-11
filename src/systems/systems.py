@@ -18,7 +18,11 @@ class PretrainClipSystem(pl.LightningModule):
         super().__init__()
         self.config = config
         self.train_dataset, self.val_dataset = datasets.get_datasets(
-            config.dataset.root, config.dataset.dataset, config.model.hash_encoder)
+            config.dataset.root, 
+            config.dataset.dataset, 
+            config.model.hash_encoder,
+            max_seq_len=config.dataset.max_seq_len,
+        )
 
         self.train_labels = self.train_dataset.get_targets()
 
