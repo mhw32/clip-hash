@@ -42,13 +42,13 @@ class HashedImageNet(ImageNet):
     def __getitem__(self, index):
         output = super().__getitem__(index)
         # hash the transformed image
-        bytes = transforms.toPIL()(output['image']).tobytes()
+        bytes = transforms.ToPILImage()(output['images']).tobytes()
         hash = hashlib.sha256(bytes).hexdigest()
         hash = ' '.join(list(hash))
         tokenized = self.tokenizer.tokenize(hash, self.max_seq_len)
         output.update(tokenized)
 
-        del output['image']
+        del output['images']
 
         return output
 
@@ -58,7 +58,7 @@ class MultimodalImageNet(HashedImageNet):
     def __getitem__(self, index):
         output = super().__getitem__(index)
 
-        bytes = transforms.toPIL()(output['image']).tobytes()
+        bytes = transforms.ToPILImage()(output['images']).tobytes()
         hash = hashlib.sha256(bytes).hexdigest()
         hash = ' '.join(list(hash))
         tokenized = self.tokenizer.tokenize(hash, self.max_seq_len)
