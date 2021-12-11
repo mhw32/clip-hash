@@ -8,7 +8,8 @@
     "data_loader_workers": 16,
     "dataset": {
         "root": "/data5/chengxuz/Dataset/imagenet_raw",
-        "dataset": "imagenet"
+        "dataset": "imagenet",
+		"max_seq_len": 66
     },
     "model": {
         "low_dim": 256,
@@ -19,8 +20,9 @@
         "temperature": 0.1
     },
     "optimizer": {
-        "batch_size": 64,
-        "lr": 5e-4
+        "batch_size": 128,
+        "lr": 5e-4,
+		"warmup_steps": 2000
     },
     "num_epochs": 32,
     "continue_from_checkpoint": null
