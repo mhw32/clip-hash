@@ -21,13 +21,13 @@ class DebertaV3ForSSL(nn.Module):
         token_type_ids=None,
         attention_mask=None,
     ):
-        outputs = self.deberta.bert(
+        outputs = self.deberta(
             input_ids,
             token_type_ids=token_type_ids,
             attention_mask=attention_mask,
             output_all_encoded_layers=False,
         )
-        encoder_layer = outputs[0]
+        encoder_layer = outputs['embeddings']
         embedding = self.pooler(encoder_layer)
         projection = self.projection(embedding)
         return embedding, projection

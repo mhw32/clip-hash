@@ -12,7 +12,7 @@
     },
     "model": {
         "low_dim": 256,
-        "image_encoder": "resnet-18", 
+        "image_encoder": "resnet-18-small", 
         "hash_encoder": "deberta-v3-xsmall"
     },
     "loss": {
