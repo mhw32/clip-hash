@@ -141,7 +141,7 @@ class PretrainClipSystem(pl.LightningModule):
         if self.trainer.max_steps:
             return self.trainer.max_steps
 
-        dataset_size = len(dataset)
+        dataset_size = len(dataset.dataset)
 
         num_devices = max(1, self.trainer.num_gpus, self.trainer.num_processes)
         if self.trainer.tpu_cores:
