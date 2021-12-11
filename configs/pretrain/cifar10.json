@@ -21,7 +21,7 @@
     "optimizer": {
         "batch_size": 64,
         "lr": 5e-4,
-		"warmup_steps": 200
+        "warmup_steps": 200
     },
     "num_epochs": 200,
     "continue_from_checkpoint": null

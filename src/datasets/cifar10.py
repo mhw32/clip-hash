@@ -7,7 +7,7 @@ from src.utils.tokenizer import DebertaV3Tokenizer
 
 class CIFAR10(data.Dataset):
 
-    def __init__(self, root, train=True, image_transforms=None):
+    def __init__(self, root, train=True, image_transforms=None, **kwargs):
         super().__init__()
         self.dataset = datasets.cifar.CIFAR10(
             root, 
@@ -33,7 +33,7 @@ class HashedCIFAR10(CIFAR10):
     def __init__(
         self,
         root,
-        deberta_model,
+        deberta_model='base',
         train=True,
         image_transforms=None,
         max_seq_len=512,

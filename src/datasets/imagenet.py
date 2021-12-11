@@ -7,7 +7,7 @@ from src.utils.tokenizer import DebertaV3Tokenizer
 
 class ImageNet(data.Dataset):
 
-    def __init__(self, root, train=True, image_transforms=None):
+    def __init__(self, root, train=True, image_transforms=None, **kwargs):
         super().__init__()
         split_dir = 'train' if train else 'validation'
         imagenet_dir = os.path.join(root, split_dir)
@@ -30,7 +30,7 @@ class HashedImageNet(ImageNet):
     def __init__(
         self,
         root,
-        deberta_model,
+        deberta_model='base',
         train=True,
         image_transforms=None,
         max_seq_len=512,
