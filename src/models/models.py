@@ -2,7 +2,7 @@ import os
 from src.models.logreg import LogisticRegression
 from src.models.resnet import resnet18, resnet50
 from src.models.resnet_small import resnet18_small, resnet50_small
-from src.models.bert import DebertaV3ForSSL
+from src.models.bert import DebertaV3ForSSL, RobertaForSSL
 
 
 IMAGE_ENCODER = {
@@ -20,6 +20,7 @@ HASH_ENCODER = {
     'deberta-v3-xsmall': 'deberta-v3-xsmall',
     'deberta-v3-base': 'deberta-v3-base',
     'deberta-v3-large': 'deberta-v3-large',
+    'roberta-base': 'roberta-base',
 }
 
 
@@ -31,7 +32,12 @@ def get_image_encoder(model_name, low_dim=128, trainable=True):
 
 
 def get_hash_encoder(model_name, low_dim=128, trainable=True):
-    encoder = DebertaV3ForSSL(low_dim=low_dim, model=HASH_ENCODER[model_name])
+    if 'deberta' in model_name:
+        encoder = DebertaV3ForSSL(low_dim=low_dim, model=HASH_ENCODER[model_name])
+    elif 'roberta' in model_name:
+        encoder = RobertaForSSL(low_dim=low_dim, model=HASH_ENCODER[model_name])
+    else:
+        raise Exception(f'Model name {model_name} not supported.')
     for p in encoder.parameters():
         p.requires_grad = trainable
     return encoder

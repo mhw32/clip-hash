@@ -30,13 +30,18 @@ class HashedImageNet(ImageNet):
     def __init__(
         self,
         root,
-        deberta_model='base',
+        bert_model='base',
         train=True,
         image_transforms=None,
         max_seq_len=512,
     ):
         super().__init__(root, train=train, image_transforms=image_transforms)
-        self.tokenizer = DebertaV3Tokenizer(deberta_model)
+        if 'deberta' in bert_model:
+            self.tokenizer = DebertaV3Tokenizer(bert_model)
+        elif 'roberta' in bert_model:
+            self.tokenizer = RobertaTokenizer.from_pretrained(bert_model)
+        else:
+            raise Exception(f'Model name {bert_model} not supported.')
         self.max_seq_len = max_seq_len
 
     def __getitem__(self, index):

@@ -3,6 +3,7 @@ import numpy as np
 import torch.utils.data as data
 from torchvision import datasets, transforms
 from src.utils.tokenizer import DebertaV3Tokenizer
+from transformers import RobertaTokenizer
 
 
 class CIFAR10(data.Dataset):
@@ -33,13 +34,19 @@ class HashedCIFAR10(CIFAR10):
     def __init__(
         self,
         root,
-        deberta_model='base',
+        bert_model='deberta-v3-base',
         train=True,
         image_transforms=None,
         max_seq_len=512,
     ):
         super().__init__(root, train=train, image_transforms=image_transforms)
-        self.tokenizer = DebertaV3Tokenizer(deberta_model)
+
+        if 'deberta' in bert_model:
+            self.tokenizer = DebertaV3Tokenizer(bert_model)
+        elif 'roberta' in bert_model:
+            self.tokenizer = RobertaTokenizer.from_pretrained(bert_model)
+        else:
+            raise Exception(f'Model name {bert_model} not supported.')
         self.max_seq_len = max_seq_len
 
     def __getitem__(self, index):
@@ -51,7 +58,8 @@ class HashedCIFAR10(CIFAR10):
         tokenized = self.tokenizer.tokenize(hash, self.max_seq_len)
         output.update(tokenized)
         """
-        tokenized = self.tokenizer.tokenize(str(output['labels']), 3)
+        tokenized = self.tokenizer.tokenize(
+            str(output['labels']), self.max_seq_len)
         output.update(tokenized)
 
         return output

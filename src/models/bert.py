@@ -2,6 +2,8 @@ import torch.nn as nn
 from DeBERTa import deberta
 from transformers.activations import ACT2FN
 from transformers.models.deberta.modeling_deberta import StableDropout
+from transformers import RobertaModel
+
 from src.models.projection import ProjectionHead
 
 
@@ -22,6 +24,34 @@ class DebertaV3ForSSL(nn.Module):
         attention_mask=None,
     ):
         outputs = self.deberta(
+            input_ids,
+            token_type_ids=token_type_ids,
+            attention_mask=attention_mask,
+            output_all_encoded_layers=False,
+        )
+        encoder_layer = outputs['embeddings']
+        # embedding = self.pooler(encoder_layer)
+        embedding = encoder_layer.mean(1)
+        projection = self.projection(embedding)
+        return embedding, projection
+
+
+class RobertaForSSL(nn.Module):
+
+    def __init__(self, low_dim=128, model='roberta-base'):
+        super().__init__()
+        self.roberta = RobertaModel.from_pretrained('roberta-base')
+        hidden_size = self.deberta.config.hidden_size
+        self.pooler = ContextPooler(hidden_size)
+        self.projection = ProjectionHead(hidden_size, low_dim)
+
+    def forward(
+        self,
+        input_ids,
+        token_type_ids=None,
+        attention_mask=None,
+    ):
+        outputs = self.roberta(
             input_ids,
             token_type_ids=token_type_ids,
             attention_mask=attention_mask,

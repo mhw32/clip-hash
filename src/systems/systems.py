@@ -20,7 +20,7 @@ class PretrainClipSystem(pl.LightningModule):
         self.train_dataset, self.val_dataset = datasets.get_datasets(
             config.dataset.root, 
             config.dataset.dataset, 
-            config.model.hash_encoder,
+            bert_model=config.model.hash_encoder,
             max_seq_len=config.dataset.max_seq_len,
         )
 
@@ -198,7 +198,11 @@ class BaseTransferSystem(pl.LightningModule):
             self.get_encoders()
 
         self.train_dataset, self.val_dataset = datasets.get_datasets(
-            config.dataset.root, config.dataset.dataset, config.model.hash_encoder)
+            config.dataset.root, 
+            config.dataset.dataset, 
+            bert_model=config.model.hash_encoder,
+            max_seq_len=config.dataset.max_seq_len,
+        )
 
         self.model = models.get_linear_evaluator(
             self.pretrain_config.model.low_dim, 

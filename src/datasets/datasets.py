@@ -81,17 +81,18 @@ TRANSFORM = {
 }
 
 
-def get_datasets(root, dataset_name, deberta_model='base', max_seq_len=512):
+def get_datasets(
+    root, dataset_name, bert_model='deberta-v3-base', max_seq_len=512):
     """
     Master function for loading datasets and toggle between
     different image transformation.
     """
     train_transforms, test_transforms = TRANSFORM[dataset_name]()
     train_dataset = DATASET[dataset_name](
-        root, train=True, deberta_model=deberta_model,
+        root, train=True, bert_model=bert_model,
         image_transforms=train_transforms, max_seq_len=max_seq_len)
     val_dataset = DATASET[dataset_name](
-        root, train=False, deberta_model=deberta_model,
+        root, train=False, bert_model=bert_model,
         image_transforms=test_transforms, max_seq_len=max_seq_len)
     train_dataset.num_class = NUM_CLASS_DICT[dataset_name]
     val_dataset.num_class = NUM_CLASS_DICT[dataset_name]
