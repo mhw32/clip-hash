@@ -4,6 +4,33 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
+from src.models.projection import ProjectionHead
+
+
+class BasicBlock(nn.Module):
+    expansion = 1
+
+    def __init__(self, in_planes, planes, stride=1):
+        super(BasicBlock, self).__init__()
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != self.expansion*planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, self.expansion*planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(self.expansion*planes)
+            )
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out += self.shortcut(x)
+        out = F.relu(out)
+        return out
+
 
 class Bottleneck(nn.Module):
     expansion = 4
@@ -96,10 +123,10 @@ class ModifiedResNet(nn.Module):
     - The final pooling layer is a QKV attention instead of an average pool
     """
 
-    def __init__(self, layers, output_dim, heads, in_channel=3, input_resolution=224, width=64):
+    def __init__(self, block, layers, heads, low_dim=128, in_channel=3, input_size=224, width=64):
         super().__init__()
-        self.output_dim = output_dim
-        self.input_resolution = input_resolution
+        self.low_dim = low_dim
+        self.input_size = input_size
 
         # the 3-layer stem
         self.conv1 = nn.Conv2d(in_channel, width // 2, kernel_size=3, stride=2, padding=1, bias=False)
@@ -113,13 +140,14 @@ class ModifiedResNet(nn.Module):
 
         # residual layers
         self._inplanes = width  # this is a *mutable* variable used during construction
-        self.layer1 = self._make_layer(width, layers[0])
-        self.layer2 = self._make_layer(width * 2, layers[1], stride=2)
-        self.layer3 = self._make_layer(width * 4, layers[2], stride=2)
-        self.layer4 = self._make_layer(width * 8, layers[3], stride=2)
+        self.layer1 = self._make_layer(block, width, layers[0])
+        self.layer2 = self._make_layer(block, width * 2, layers[1], stride=2)
+        self.layer3 = self._make_layer(block, width * 4, layers[2], stride=2)
+        self.layer4 = self._make_layer(block, width * 8, layers[3], stride=2)
 
-        embed_dim = width * 32  # the ResNet feature dimension
-        self.attnpool = AttentionPool2d(input_resolution // 32, embed_dim, heads, output_dim)
+        embedding_dim = width * 32  # the ResNet feature dimension
+        self.attnpool = AttentionPool2d(input_size // 32, embedding_dim, heads, embedding_dim)
+        self.projection_head = ProjectionHead(embedding_dim, low_dim)
 
     def _make_layer(self, planes, blocks, stride=1):
         layers = [Bottleneck(self._inplanes, planes, stride)]
@@ -144,18 +172,21 @@ class ModifiedResNet(nn.Module):
         x = self.layer3(x)
         x = self.layer4(x)
         x = self.attnpool(x)
-
-        return x
+        embedding = x.view(x.size(0), -1)
+        projection = self.projection_head(embedding)
+        return embedding, projection
 
 
 def resnet18_mod(low_dim=128, in_channel=3, input_size=32, width=64):
     heads = width * 32 // 64
-    return ModifiedResNet([2,2,2,2], low_dim, heads, in_channel=in_channel, 
-                          input_resolution=input_size)
+    return ModifiedResNet(BasicBlock, 2,2,2,2], heads, low_dim=low_dim, 
+                          in_channel=in_channel, input_size=input_size,
+                          width=width)
 
 
 def resnet50_mod(low_dim=128, in_channel=3, input_size=32, width=64):
     heads = width * 32 // 64
-    return ModifiedResNet([3,4,6,3], low_dim, heads, in_channel=in_channel, 
-                          input_resolution=input_size)
+    return ModifiedResNet(Bottleneck, [3,4,6,3], heads, low_dim=low_dim, 
+                          in_channel=in_channel, input_size=input_size,
+                          width=width)
 
