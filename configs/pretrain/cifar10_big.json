@@ -8,13 +8,13 @@
     "data_loader_workers": 16,
     "dataset": {
         "root": "/data2/wumike/cifar10",
-        "dataset": "multimodal_cifar10",
+        "dataset": "multimodal_cifar10_big",
         "max_seq_len": 3
     },
     "model": {
         "low_dim": 256,
-        "image_encoder": "resnet-18-small", 
-        "image_pretrained": false,
+        "image_encoder": "resnet-18-pretrained", 
+        "image_pretrained": true,
         "hash_encoder": "roberta-base",
         "finetune_hash": 3
     },

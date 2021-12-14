@@ -30,6 +30,7 @@ class PretrainClipSystem(pl.LightningModule):
             config.model.image_encoder,
             config.model.low_dim,
             trainable=True,
+            pretrained=config.model.image_pretrained,
         )
 
         self.hash_encoder = models.get_hash_encoder(
