@@ -44,10 +44,14 @@ class HashedCIFAR10(CIFAR10):
 
     def __getitem__(self, index):
         output = super().__getitem__(index)
+        """
         # hash the transformed image
         bytes = transforms.ToPILImage()(output['images']).tobytes()
         hash = hashlib.sha256(bytes).hexdigest()
         tokenized = self.tokenizer.tokenize(hash, self.max_seq_len)
+        output.update(tokenized)
+        """
+        tokenized = self.tokenizer.tokenize(str(output['labels']), 3)
         output.update(tokenized)
 
         return output
