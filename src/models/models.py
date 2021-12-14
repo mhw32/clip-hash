@@ -2,6 +2,7 @@ import os
 from src.models.logreg import LogisticRegression
 from src.models.resnet import resnet18, resnet50
 from src.models.resnet_small import resnet18_small, resnet50_small
+from src.models.resnet_mod import resnet18_mod, resnet50_mod
 from src.models.bert import DebertaV3ForSSL, RobertaForSSL
 
 
@@ -10,6 +11,8 @@ IMAGE_ENCODER = {
     'resnet-50': resnet50,
     'resnet-18-small': resnet18_small,
     'resnet-50-small': resnet50_small,
+    'resnet-18-mod': resnet18_mod,
+    'resnet-50-mod': resnet50_mod,
     'logreg': LogisticRegression,
 }
 

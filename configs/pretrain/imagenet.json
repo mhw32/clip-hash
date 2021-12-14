@@ -13,7 +13,7 @@
     },
     "model": {
         "low_dim": 256,
-        "image_encoder": "resnet-18", 
+        "image_encoder": "resnet-50-mod", 
         "hash_encoder": "roberta-base",
         "finetune_hash": 3
     },
