@@ -52,19 +52,17 @@ class HashedCIFAR10(CIFAR10):
 
     def __getitem__(self, index):
         output = super().__getitem__(index)
-        """
         # hash the transformed image
-        bytes = transforms.ToPILImage()(output['images']).tobytes()
-        hash = hashlib.sha256(bytes).hexdigest()
-        tokenized = self.tokenizer.tokenize(hash, self.max_seq_len)
-        output.update(tokenized)
-        """
+        bytes_ = transforms.ToPILImage()(output['images']).tobytes()
+        hash_ = hashlib.sha256(bytes_).hexdigest()
+        
         if 'deberta' in self.bert_model:
-            tokenized = self.tokenizer.tokenize(str(output['labels']), self.max_seq_len)
+            tokenized = self.tokenizer.tokenize(hash_, self.max_seq_len)
         elif 'roberta' in self.bert_model:
             tokenized = self.tokenizer(
-                str(output['labels']), truncation=True, padding='max_length', 
-                max_length=self.max_seq_len, pad_to_max_length=True, return_tensors='pt')
+                hash_, truncation=True, padding='max_length', 
+                max_length=self.max_seq_len, pad_to_max_length=True, 
+                return_tensors='pt')
             for k in tokenized.keys():
                 tokenized[k] = tokenized[k].squeeze(0)
         output.update(tokenized)

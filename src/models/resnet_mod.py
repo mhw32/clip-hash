@@ -179,7 +179,7 @@ class ModifiedResNet(nn.Module):
 
 def resnet18_mod(low_dim=128, in_channel=3, input_size=32, width=64):
     heads = width * 32 // 64
-    return ModifiedResNet(BasicBlock, 2,2,2,2], heads, low_dim=low_dim, 
+    return ModifiedResNet(BasicBlock, [2,2,2,2], heads, low_dim=low_dim, 
                           in_channel=in_channel, input_size=input_size,
                           width=width)
 
