@@ -35,6 +35,7 @@ class PretrainClipSystem(pl.LightningModule):
         self.hash_encoder = models.get_hash_encoder(
             config.model.hash_encoder,
             config.model.low_dim,
+            finetune_layers=config.model.finetune_hash,
             trainable=True,
         )
 
