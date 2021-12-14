@@ -88,8 +88,8 @@ class PretrainClipSystem(pl.LightningModule):
 
         logits = (image_projs @ hash_projs.t()) / self.temperature
         labels = torch.arange(logits.size(0)).type_as(logits).long()
-        image_loss = F.cross_entropy(logits, labels, reduction='none')
-        hash_loss = F.cross_entropy(logits.t(), labels, reduction='none')
+        image_loss = F.cross_entropy(logits, labels)
+        hash_loss = F.cross_entropy(logits.t(), labels)
         loss = (image_loss + hash_loss) / 2.0
 
         if train:  # save embeddings into memory bank
@@ -97,7 +97,7 @@ class PretrainClipSystem(pl.LightningModule):
                 self.image_memory_bank.update(indices, image_projs)
                 self.hash_memory_bank.update(indices, hash_projs)
 
-        return loss.mean()
+        return loss
 
     @torch.no_grad()
     def get_nearest_neighbor_label(self, batch):
