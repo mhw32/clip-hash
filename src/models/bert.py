@@ -41,8 +41,7 @@ class RobertaForSSL(nn.Module):
     def __init__(self, low_dim=128, model='roberta-base'):
         super().__init__()
         self.roberta = RobertaModel.from_pretrained('roberta-base')
-        hidden_size = self.deberta.config.hidden_size
-        self.pooler = ContextPooler(hidden_size)
+        hidden_size = self.roberta.config.hidden_size
         self.projection = ProjectionHead(hidden_size, low_dim)
 
     def forward(
@@ -55,11 +54,8 @@ class RobertaForSSL(nn.Module):
             input_ids,
             token_type_ids=token_type_ids,
             attention_mask=attention_mask,
-            output_all_encoded_layers=False,
         )
-        encoder_layer = outputs['embeddings']
-        # embedding = self.pooler(encoder_layer)
-        embedding = encoder_layer.mean(1)
+        embedding = outputs[1]  # pooler output 
         projection = self.projection(embedding)
         return embedding, projection
 

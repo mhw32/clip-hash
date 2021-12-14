@@ -34,14 +34,19 @@ def get_image_encoder(model_name, low_dim=128, trainable=True):
 def get_hash_encoder(model_name, low_dim=128, finetune_layers=3, trainable=True):
     if 'deberta' in model_name:
         encoder = DebertaV3ForSSL(low_dim=low_dim, model=HASH_ENCODER[model_name])
+        for p in encoder.parameters():
+            p.requires_grad = True
     elif 'roberta' in model_name:
         encoder = RobertaForSSL(low_dim=low_dim, model=HASH_ENCODER[model_name])
+        for p in encoder.parameters():
+            p.requires_grad = False
+        for p in encoder.roberta.pooler.parameters():
+            p.requires_grad = True
+        for param in encoder.roberta.encoder.layer[-finetune_layers:].parameters():
+            param.requires_grad = True
     else:
         raise Exception(f'Model name {model_name} not supported.')
-    for p in encoder.parameters():
-        p.requires_grad = False
-    for param in encoder.encoder.layer[-finetune_layers:].parameters():
-        param.requires_grad = True
+
     return encoder
 
 

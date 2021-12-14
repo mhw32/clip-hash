@@ -48,6 +48,7 @@ class HashedCIFAR10(CIFAR10):
         else:
             raise Exception(f'Model name {bert_model} not supported.')
         self.max_seq_len = max_seq_len
+        self.bert_model = bert_model
 
     def __getitem__(self, index):
         output = super().__getitem__(index)
@@ -58,8 +59,14 @@ class HashedCIFAR10(CIFAR10):
         tokenized = self.tokenizer.tokenize(hash, self.max_seq_len)
         output.update(tokenized)
         """
-        tokenized = self.tokenizer.tokenize(
-            str(output['labels']), self.max_seq_len)
+        if 'deberta' in self.bert_model:
+            tokenized = self.tokenizer.tokenize(str(output['labels']), self.max_seq_len)
+        elif 'roberta' in self.bert_model:
+            tokenized = self.tokenizer(
+                str(output['labels']), truncation=True, padding='max_length', 
+                max_length=self.max_seq_len, pad_to_max_length=True, return_tensors='pt')
+            for k in tokenized.keys():
+                tokenized[k] = tokenized[k].squeeze(0)
         output.update(tokenized)
 
         return output
