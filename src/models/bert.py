@@ -28,7 +28,8 @@ class DebertaV3ForSSL(nn.Module):
             output_all_encoded_layers=False,
         )
         encoder_layer = outputs['embeddings']
-        embedding = self.pooler(encoder_layer)
+        # embedding = self.pooler(encoder_layer)
+        embedding = encoder_layer.mean(1)
         projection = self.projection(embedding)
         return embedding, projection
 
