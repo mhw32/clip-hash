@@ -54,7 +54,7 @@ class HashedCIFAR10(CIFAR10):
         output = super().__getitem__(index)
         # hash the transformed image
         bytes_ = transforms.ToPILImage()(output['images']).tobytes()
-        hash_ = hashlib.sha256(bytes_).hexdigest()
+        hash_ = hashlib.md5(bytes_).hexdigest()
         
         if 'deberta' in self.bert_model:
             tokenized = self.tokenizer.tokenize(hash_, self.max_seq_len)

@@ -3,6 +3,7 @@ import numpy as np
 import torch.utils.data as data
 from torchvision import datasets, transforms
 from src.utils.tokenizer import DebertaV3Tokenizer
+from transformers import RobertaTokenizer
 
 
 class ImageNet(data.Dataset):
@@ -48,7 +49,7 @@ class HashedImageNet(ImageNet):
         output = super().__getitem__(index)
         # hash the transformed image
         bytes = transforms.ToPILImage()(output['images']).tobytes()
-        hash = hashlib.sha256(bytes).hexdigest()
+        hash = hashlib.md5(bytes).hexdigest()
         tokenized = self.tokenizer.tokenize(hash, self.max_seq_len)
         output.update(tokenized)
 
